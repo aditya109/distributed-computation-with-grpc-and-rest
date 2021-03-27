@@ -1,13 +1,15 @@
 package io.github.restserver.controllers;
 
+import io.github.restserver.helper.PathProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.List;
+import java.util.ArrayList;
 
 @Component
 @PropertySource("classpath:application.properties")
@@ -15,6 +17,19 @@ public class GrpcServerScalingController {
 
     @Autowired
     private Environment env;
+
+    @Autowired
+    private PathProvider pathProvider;
+
+    private ArrayList<Integer> portList;
+
+    public GrpcServerScalingController() {
+        this.portList = new ArrayList<>();
+    }
+
+    public ArrayList<Integer> getPortList() {
+        return portList;
+    }
 
     /**
      * Returns a free port number on localhost.
@@ -49,33 +64,37 @@ public class GrpcServerScalingController {
         throw new IllegalStateException("Could not find a free TCP/IP port to start embedded Jetty HTTP Server on");
     }
 
-    private List<Integer> getFreePortList(int requirements) {
+    private void getFreePortList(int requirements) {
         requirements = requirements < (Runtime.getRuntime().availableProcessors() - 2) ? requirements : 4;
-        List<Integer> freePortList = null;
         for (int i = 0; i < requirements; i++) {
-            freePortList.add(findFreePort());
+            portList.add(findFreePort());
         }
-        return freePortList;
     }
 
-    public void grpcServerScaler(boolean isFirstTime){
-        if (isFirstTime) {
-            int freePort = findFreePort();
-            spawnGrpcServer(freePort, true);
+    public void grpcServerScaler(boolean isFirstInstance) throws IOException {
+        String envThreshold = env.getProperty("server_threshold");
+        if (isFirstInstance) {
+            if (envThreshold != null) {
+                int requirements = Integer.parseInt(envThreshold);
+                getFreePortList(requirements);
+            }
+            int firstInstancePort = portList.get(0);
+            System.out.println("Spawning gRPC server at " + firstInstancePort);
+            spawnGrpcServer(firstInstancePort);
         } else {
-            int requirements = Integer.parseInt(env.getProperty("server_threshold"));
-            List<Integer> freePortList = getFreePortList(requirements);
-        }
-
-    }
-
-    public void spawnGrpcServer(int port, boolean doSetup) {
-        if (doSetup) {
-
+            for (int i = 1; i < portList.size(); i++) {
+                System.out.println("Spawning gRPC server at " + portList.get(i));
+                spawnGrpcServer(portList.get(i));
+            }
         }
     }
 
-    public void spawnGrpcServer(int port) {
+    public void spawnGrpcServer(int port) throws IOException {
+        String spawnScriptPath = pathProvider.provideScriptPath() + File.separator + "spawn.py";
+        String cmd = "python " + spawnScriptPath + " " + port;
+        System.out.println(cmd);
+        Runtime run = Runtime.getRuntime();
+        Process pr = run.exec(cmd);
 
     }
 }

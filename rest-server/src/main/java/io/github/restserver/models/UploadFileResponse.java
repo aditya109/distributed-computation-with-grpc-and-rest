@@ -3,9 +3,10 @@ package io.github.restserver.models;
 import java.util.ArrayList;
 
 public class UploadFileResponse {
-    public ArrayList<ArrayList<Integer>> multiplicationResult;
+    public ArrayList<ArrayList<Long>> multiplicationResult;
     public Status status;
-    public ArrayList<ArrayList<Integer>> getMultiplicationResult() {
+
+    public ArrayList<ArrayList<Long>> getMultiplicationResult() {
         return multiplicationResult;
     }
 
@@ -17,11 +18,11 @@ public class UploadFileResponse {
         this.status = status;
     }
 
-    public void setMultiplicationResult(ArrayList<ArrayList<Integer>> multiplicationResult) {
+    public void setMultiplicationResult(ArrayList<ArrayList<Long>> multiplicationResult) {
         this.multiplicationResult = multiplicationResult;
     }
 
-    public UploadFileResponse(ArrayList<ArrayList<Integer>> multiplicationResult) {
+    public UploadFileResponse(ArrayList<ArrayList<Long>> multiplicationResult) {
         this.multiplicationResult = multiplicationResult;
         this.status = Status.UNKNOWN;
     }

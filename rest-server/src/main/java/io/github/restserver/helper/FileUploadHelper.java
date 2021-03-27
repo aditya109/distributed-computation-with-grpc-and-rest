@@ -11,14 +11,14 @@ import java.nio.file.StandardCopyOption;
 @Component
 public class FileUploadHelper {
     @Autowired
-    private StoragePathProvider storagePathProvider;
+    private PathProvider pathProvider;
 
     public boolean uploadFile(MultipartFile file) {
         boolean flag = false;
         try {
             Files.copy(
                     file.getInputStream(),
-                    Paths.get(storagePathProvider.provideStoragePath() + file.getOriginalFilename()),
+                    Paths.get(pathProvider.provideStoragePath() + file.getOriginalFilename()),
                     StandardCopyOption.REPLACE_EXISTING
             );
             flag = true;

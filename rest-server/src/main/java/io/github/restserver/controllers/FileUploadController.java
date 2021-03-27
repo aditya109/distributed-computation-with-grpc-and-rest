@@ -2,7 +2,9 @@ package io.github.restserver.controllers;
 
 import io.github.restserver.helper.FileUploadHelper;
 import io.github.restserver.helper.MatrixLoaderHelper;
-import io.github.restserver.helper.StoragePathProvider;
+import io.github.restserver.helper.PathProvider;
+import io.github.restserver.models.Status;
+import io.github.restserver.models.UploadFileResponse;
 import io.github.restserver.services.ComputeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,14 +25,13 @@ public class FileUploadController {
     private MatrixLoaderHelper matrixLoaderHelper;
 
     @Autowired
-    private StoragePathProvider storagePathProvider;
+    private PathProvider pathProvider;
 
     @Autowired
     private ComputeService computeService;
 
     @Autowired
-    private GrpcServerScalingController grpcServerScalingController;
-
+    private ThreadedComputeController threadedComputeController;
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(@RequestParam("file1") MultipartFile file1, @RequestParam("file2") MultipartFile file2) {
@@ -42,37 +43,40 @@ public class FileUploadController {
             // todo add checks for file type
             if (fileUploadHelper.uploadFile(file1) && fileUploadHelper.uploadFile(file2)) {
                 // trigger file-to-matrix transformation
-                String storagePath = storagePathProvider.provideStoragePath();
+                String storagePath = pathProvider.provideStoragePath();
                 ArrayList<ArrayList<Long>> matrixA = matrixLoaderHelper.loadFileDataOntoMatrix(storagePath + file1.getOriginalFilename());
-                System.out.println("=================================");
-                System.out.println("Matrix A : 👇");
-                computeService.displayMatrix(matrixA);
-                System.out.println("=================================");
-
+//                System.out.println("=================================");
+//                System.out.println("Matrix A : 👇");
+//                System.out.println("=================================");
+//                computeService.displayMatrix(matrixA);
+//                System.out.println("=================================");
                 ArrayList<ArrayList<Long>> matrixB = matrixLoaderHelper.loadFileDataOntoMatrix(storagePath + file2.getOriginalFilename());
-                System.out.println("Initiating matrix transpose.... 👇");
+//                System.out.println("Initiating matrix transpose.... 👇");
                 matrixB = computeService.returnTranspose(matrixB);
-                System.out.println("Matrix B now : 👇");
-                System.out.println("=================================");
-                computeService.displayMatrix(matrixB);
+//                System.out.println("Matrix B now : 👇");
+//                System.out.println("=================================");
+//                computeService.displayMatrix(matrixB);
 
-                grpcServerScalingController.grpcServerScaler(true);
+//                grpcServerScalingController.grpcServerScaler(true);
+//                grpcServerScalingController.grpcServerScaler(false);
 
                 if (computeService.isMultiplicationPossible(matrixA, matrixB)) {
+                    ArrayList<ArrayList<Long>> matrixC = threadedComputeController.run(matrixA, matrixB);
+                    UploadFileResponse uploadFileResponse = null;
+//                    uploadFileResponse.setMultiplicationResult(matrixC);
+//                    uploadFileResponse.setStatus(Status.SUCCESS);
+
                     // move ahead and trigger asynchronous row-column multiplications
 //                    ArrayList<ArrayList<Long>> matrixC = multiplyMatrixToMatrix(matrixA, matrixB);    // resultant matrixC = matrixA * matrixB
 //                    System.out.println("=================================");
 //                    System.out.println("Printing the resultant matrix.... 👇");
 //                    displayMatrix(matrixC);
 //                    System.out.println("=================================");
-                    return ResponseEntity.ok("matrices can be multiplied...");
+                    return ResponseEntity.ok(uploadFileResponse);
                 } else {
                     // throw error response
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("provided matrices can't be multiplied\nsize do not match\n, OR, size not in powers of 2");
                 }
-
-
-
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Something went wrong while uploading files");
             }
