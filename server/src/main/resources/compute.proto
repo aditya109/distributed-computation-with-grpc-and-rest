@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option java_package = "io.github.stubs.compute";
+
+//message UploadFileRequest {
+//  oneof data {
+//    ImageInfo info = 1;
+//    bytes chunkData = 2;
+//  };
+//}
+//
+//message ImageInfo {
+//  string fileId = 1;
+//  string fileType = 2;
+//}
+//
+//message UploadFileResponse {
+//  string id = 1;
+//  uint32 size = 2;
+//}
+
+service Compute{
+  rpc MultiplyRowToMatrix(RowMatrixRequest) returns (MatrixResponse) {};
+  rpc AddElementsInMatrix(MatrixRequest) returns (RowResponse) {};
+  rpc AddElements
+
+//  rpc UploadImage(stream UploadFileRequest) returns (UploadFileResponse) {};
+}
