@@ -79,10 +79,12 @@ public class GrpcServerScalingController {
                 getFreePortList(requirements);
             }
             int firstInstancePort = portList.get(0);
+            System.out.println("=================================");
             System.out.println("Spawning gRPC server at " + firstInstancePort);
             spawnGrpcServer(firstInstancePort);
         } else {
             for (int i = 1; i < portList.size(); i++) {
+                System.out.println("=================================");
                 System.out.println("Spawning gRPC server at " + portList.get(i));
                 spawnGrpcServer(portList.get(i));
             }
@@ -95,6 +97,7 @@ public class GrpcServerScalingController {
         System.out.println(cmd);
         Runtime run = Runtime.getRuntime();
         Process pr = run.exec(cmd);
+        System.out.println("=================================");
 
     }
 }

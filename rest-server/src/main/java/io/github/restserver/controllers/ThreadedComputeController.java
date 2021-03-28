@@ -50,27 +50,27 @@ public class ThreadedComputeController {
     private GrpcClientController grpcClientController;
     private int counter;
     private ArrayList<Integer> portList;
-
+    private boolean isSetupDone;
     public ThreadedComputeController() {
         this.grpcClientController = new GrpcClientController();
         this.counter = 0;
-
+        this.isSetupDone = false;
     }
-
-    public ArrayList<ArrayList<Long>> run(ArrayList<ArrayList<Long>> matrixA, ArrayList<ArrayList<Long>> matrixB) throws IOException, InterruptedException, ExecutionException {
-        this.portList = this.grpcServerScalingController.getPortList();
-        grpcServerScalingController.grpcServerScaler(true);
-        int portEngaged = grpcServerScalingController.getPortList().get(0);
-        GrpcResponse grpcResponse = new GrpcClientController().callMultiplyRowByColumnUsingBlockingStub(portEngaged, matrixA.get(0), matrixA.get(0), 0, 0);
+    public void setup(ArrayList<ArrayList<Long>> matrixA, ArrayList<ArrayList<Long>> matrixB) throws IOException, InterruptedException {
+        if (!this.isSetupDone) {
+            this.portList = this.grpcServerScalingController.getPortList();
+            grpcServerScalingController.grpcServerScaler(true);
+            int portEngaged = grpcServerScalingController.getPortList().get(0);
+            GrpcResponse grpcResponse = new GrpcClientController().callMultiplyRowByColumnUsingAsyncStub(portEngaged, matrixA.get(0), matrixA.get(0), 0, 0);
+            grpcServerScalingController.grpcServerScaler(false);
+            this.isSetupDone = true;
+        }
+    }
+    public ArrayList<ArrayList<Long>> run(ArrayList<ArrayList<Long>> matrixA, ArrayList<ArrayList<Long>> matrixB) throws InterruptedException, ExecutionException, IOException {
+        setup(matrixA, matrixB);
         long dimension = matrixA.size();
-
         int workers = deadlineFootprintHelper.computeWorkersRequired(dimension);
-        grpcServerScalingController.grpcServerScaler(false);
-        int counter = 0;
-        // todo
-        System.out.println(workers);
         ArrayList<ArrayList<Long>> matrixC = new ArrayList<>();     // resultant matrixC = matrixA * matrixB
-
         ExecutorService pool = Executors.newFixedThreadPool(workers);
         Set<Future<GrpcResponse>> elements = new HashSet<>();
 
@@ -78,7 +78,6 @@ public class ThreadedComputeController {
 
         for (int i = 0; i < iterativeLimit; i++) {
             for (int j = 0; j < iterativeLimit; j++) {
-                System.out.print( i + " " + j + " = " );
                 Callable<GrpcResponse> e =
                         new GrpcClientCallable(
                                 getPortUsingRR(),
@@ -92,25 +91,19 @@ public class ThreadedComputeController {
 
             }
         }
-// todo
-//        for (int i = 0; i < dimension; i++) {
-//            ArrayList<Long> row = new ArrayList<>();
-//            for (int j = 0; j < dimension; j++) {
-//                row.add(0L);
-//            }
-//            matrixC.add(row);
-//        }
-//
-//
-//        for (Future<GrpcResponse> e : elements) {
-//            while(!e.isDone()) {
-//                System.out.println("Attempting to complete response");
-//                continue;
-//            }
-//            System.out.println("Response completed");
-//            GrpcResponse temp = e.get();
-//            matrixC.get(temp.getRowId()).set(temp.getColumnId(), temp.getElement());
-//        }
+
+        for (int i = 0; i < dimension; i++) {
+            ArrayList<Long> row = new ArrayList<>();
+            for (int j = 0; j < dimension; j++) {
+                row.add(0L);
+            }
+            matrixC.add(row);
+        }
+
+        for (Future<GrpcResponse> e : elements) {
+            GrpcResponse temp = e.get();
+            matrixC.get(temp.getRowId()).set(temp.getColumnId(), temp.getElement());
+        }
         return matrixC;
     }
 

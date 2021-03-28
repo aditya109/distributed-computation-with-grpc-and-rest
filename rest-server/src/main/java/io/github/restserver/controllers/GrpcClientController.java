@@ -23,6 +23,9 @@ class GrpcResponse {
                 '}';
     }
 
+    public GrpcResponse() {
+    }
+
     private long element;
     private int rowId;
     private int columnId;
@@ -127,7 +130,7 @@ public class GrpcClientController {
         }
         Matrix.multiplyBlockRequest request = builder.setRowId(rowId).setColumnId(colId).build();
         Matrix.multiplyBlockResponse multiplyBlockResponse = matrixStub.multiplyRowByColumn(request);
-        GrpcResponse response = null;
+        GrpcResponse response = new GrpcResponse();
         response.setElement(multiplyBlockResponse.getElement());
         response.setColumnId(multiplyBlockResponse.getColumnId());
         response.setRowId(multiplyBlockResponse.getRowId());

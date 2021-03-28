@@ -6,6 +6,9 @@ public class UploadFileResponse {
     public ArrayList<ArrayList<Long>> multiplicationResult;
     public Status status;
 
+    public UploadFileResponse() {
+    }
+
     public ArrayList<ArrayList<Long>> getMultiplicationResult() {
         return multiplicationResult;
     }

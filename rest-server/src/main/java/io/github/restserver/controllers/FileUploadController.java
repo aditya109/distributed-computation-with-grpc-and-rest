@@ -40,38 +40,34 @@ public class FileUploadController {
             if (file1.isEmpty() || file2.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Files are empty");
             }
-            // todo add checks for file type
             if (fileUploadHelper.uploadFile(file1) && fileUploadHelper.uploadFile(file2)) {
                 // trigger file-to-matrix transformation
                 String storagePath = pathProvider.provideStoragePath();
                 ArrayList<ArrayList<Long>> matrixA = matrixLoaderHelper.loadFileDataOntoMatrix(storagePath + file1.getOriginalFilename());
-//                System.out.println("=================================");
-//                System.out.println("Matrix A : 👇");
-//                System.out.println("=================================");
-//                computeService.displayMatrix(matrixA);
-//                System.out.println("=================================");
+                System.out.println("=================================");
+                System.out.println("Matrix A : ");
+                System.out.println("=================================");
+                computeService.displayMatrix(matrixA);
+                System.out.println("=================================");
                 ArrayList<ArrayList<Long>> matrixB = matrixLoaderHelper.loadFileDataOntoMatrix(storagePath + file2.getOriginalFilename());
-//                System.out.println("Initiating matrix transpose.... 👇");
+                System.out.println("Initiating matrix transpose.... ");
                 matrixB = computeService.returnTranspose(matrixB);
-//                System.out.println("Matrix B now : 👇");
-//                System.out.println("=================================");
-//                computeService.displayMatrix(matrixB);
+                System.out.println("Matrix B now : ");
+                System.out.println("=================================");
+                computeService.displayMatrix(matrixB);
 
-//                grpcServerScalingController.grpcServerScaler(true);
-//                grpcServerScalingController.grpcServerScaler(false);
 
                 if (computeService.isMultiplicationPossible(matrixA, matrixB)) {
                     ArrayList<ArrayList<Long>> matrixC = threadedComputeController.run(matrixA, matrixB);
-                    UploadFileResponse uploadFileResponse = null;
-//                    uploadFileResponse.setMultiplicationResult(matrixC);
-//                    uploadFileResponse.setStatus(Status.SUCCESS);
+                    UploadFileResponse uploadFileResponse = new UploadFileResponse();
+                    uploadFileResponse.setMultiplicationResult(matrixC);
+                    uploadFileResponse.setStatus(Status.SUCCESS);
 
                     // move ahead and trigger asynchronous row-column multiplications
-//                    ArrayList<ArrayList<Long>> matrixC = multiplyMatrixToMatrix(matrixA, matrixB);    // resultant matrixC = matrixA * matrixB
-//                    System.out.println("=================================");
-//                    System.out.println("Printing the resultant matrix.... 👇");
-//                    displayMatrix(matrixC);
-//                    System.out.println("=================================");
+                    System.out.println("=================================");
+                    System.out.println("Printing the resultant matrix....");
+                    computeService.displayMatrix(matrixC);
+                    System.out.println("=================================");
                     return ResponseEntity.ok(uploadFileResponse);
                 } else {
                     // throw error response

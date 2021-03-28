@@ -22,7 +22,7 @@ public class DeadlineFootprintHelper {
             int threshold = Integer.parseInt(envThreshold);
             long delta = Long.parseLong(envDelta);
             workers = (int) ((responseTimeInMills * dimension * dimension) / deadLine) + 1;
-            System.out.println(deadLine + " " + responseTimeInMills + " " + dimension + " " + delta);
+//            System.out.println(deadLine + " " + responseTimeInMills + " " + dimension + " " + delta);
             if (threshold < workers) {
                 System.out.println("Worker value exceeding threshold.\nSetting its value to threshold.");
                 workers = threshold;
