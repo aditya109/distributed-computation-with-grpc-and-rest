@@ -71,7 +71,7 @@ public class GrpcServerScalingController {
         }
     }
 
-    public void grpcServerScaler(boolean isFirstInstance) throws IOException {
+    public void grpcServerScaleUp(boolean isFirstInstance) throws IOException {
         String envThreshold = env.getProperty("server_threshold");
         if (isFirstInstance) {
             if (envThreshold != null) {
@@ -99,5 +99,21 @@ public class GrpcServerScalingController {
         Process pr = run.exec(cmd);
         System.out.println("=================================");
 
+    }
+
+    public void grpcServerScaleDown() throws IOException {
+        for (int port : this.portList) {
+            killGrpcServer(port);
+            System.out.println("Worker gRPC on " + port + " was killed.");
+        }
+    }
+
+    public void killGrpcServer(int port) throws IOException {
+        String spawnScriptPath = pathProvider.provideScriptPath() + File.separator + "kill.py";
+        String cmd = "python " + spawnScriptPath + " " + port;
+        System.out.println(cmd);
+        Runtime run = Runtime.getRuntime();
+        Process pr = run.exec(cmd);
+        System.out.println("=================================");
     }
 }

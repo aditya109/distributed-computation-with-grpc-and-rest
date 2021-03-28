@@ -51,23 +51,29 @@ public class ThreadedComputeController {
     private int counter;
     private ArrayList<Integer> portList;
     private boolean isSetupDone;
+    private boolean areWorkersUp;
     public ThreadedComputeController() {
         this.grpcClientController = new GrpcClientController();
         this.counter = 0;
         this.isSetupDone = false;
+        this.areWorkersUp = false;
     }
     public void setup(ArrayList<ArrayList<Long>> matrixA, ArrayList<ArrayList<Long>> matrixB) throws IOException, InterruptedException {
         if (!this.isSetupDone) {
             this.portList = this.grpcServerScalingController.getPortList();
-            grpcServerScalingController.grpcServerScaler(true);
+            grpcServerScalingController.grpcServerScaleUp(true);
             int portEngaged = grpcServerScalingController.getPortList().get(0);
             GrpcResponse grpcResponse = new GrpcClientController().callMultiplyRowByColumnUsingAsyncStub(portEngaged, matrixA.get(0), matrixA.get(0), 0, 0);
-            grpcServerScalingController.grpcServerScaler(false);
+            grpcServerScalingController.grpcServerScaleUp(false);
             this.isSetupDone = true;
+            this.areWorkersUp = true;
         }
     }
     public ArrayList<ArrayList<Long>> run(ArrayList<ArrayList<Long>> matrixA, ArrayList<ArrayList<Long>> matrixB) throws InterruptedException, ExecutionException, IOException {
         setup(matrixA, matrixB);
+        if (! this.areWorkersUp) {
+            grpcServerScalingController.grpcServerScaleUp(false);
+        }
         long dimension = matrixA.size();
         int workers = deadlineFootprintHelper.computeWorkersRequired(dimension);
         ArrayList<ArrayList<Long>> matrixC = new ArrayList<>();     // resultant matrixC = matrixA * matrixB

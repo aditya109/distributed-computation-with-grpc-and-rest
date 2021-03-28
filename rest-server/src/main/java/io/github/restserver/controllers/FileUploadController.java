@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 @RestController
@@ -32,6 +33,9 @@ public class FileUploadController {
 
     @Autowired
     private ThreadedComputeController threadedComputeController;
+
+    @Autowired
+    private GrpcServerScalingController grpcServerScalingController;
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(@RequestParam("file1") MultipartFile file1, @RequestParam("file2") MultipartFile file2) {
@@ -55,8 +59,6 @@ public class FileUploadController {
                 System.out.println("Matrix B now : ");
                 System.out.println("=================================");
                 computeService.displayMatrix(matrixB);
-
-
                 if (computeService.isMultiplicationPossible(matrixA, matrixB)) {
                     ArrayList<ArrayList<Long>> matrixC = threadedComputeController.run(matrixA, matrixB);
                     UploadFileResponse uploadFileResponse = new UploadFileResponse();
@@ -82,4 +84,14 @@ public class FileUploadController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Something went wrong");
     }
 
+    @PostMapping("/kill-kids")
+    public ResponseEntity<?> killChildren() {
+        try {
+            grpcServerScalingController.grpcServerScaleDown();
+            return ResponseEntity.ok(grpcServerScalingController.getPortList().size() + " gRPC workers were killed");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("workers couldn't be killed.\n Please restart the server.");
+    }
 }
