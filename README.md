@@ -1,6 +1,10 @@
 
 
-# Starting the Project
+# distributed-computation-with-`grpc`-and-`rest`
+
+Distributed computing with `deadline-footprinting` functionality in Spring Boot server acting as gRPC Client (as Master) and gRPC Server (as Workers). Also the Spring Boot server can auto-scale workers to a configurable threshold. 
+
+## Starting the Project
 
 - Go to `grpc-server` directory and run `mvn` command over there
 
