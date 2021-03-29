@@ -14,6 +14,7 @@ public class PathProvider {
         final String UPLOAD_DIR = projectRootLocation + File.separator + SERVER_BASE_PATH.toString() + File.separator;
         return UPLOAD_DIR;
     }
+
     public String provideScriptPath() {
         final String projectRootLocation = System.getProperty("user.dir");
         String scriptDirectory = projectRootLocation.split("rest-server")[0];

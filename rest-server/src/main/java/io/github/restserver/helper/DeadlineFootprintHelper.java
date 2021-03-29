@@ -1,6 +1,5 @@
 package io.github.restserver.helper;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -8,8 +7,11 @@ import org.springframework.stereotype.Component;
 @Component
 @PropertySource("classpath:application.properties")
 public class DeadlineFootprintHelper {
-    @Autowired
-    private Environment env;
+    private final Environment env;
+
+    public DeadlineFootprintHelper(Environment env) {
+        this.env = env;
+    }
 
     public int computeWorkersRequired(long dimension) {
         long responseTimeInMills = 800;

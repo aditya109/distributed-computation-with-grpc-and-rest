@@ -6,7 +6,6 @@ import io.github.restserver.helper.PathProvider;
 import io.github.restserver.models.Status;
 import io.github.restserver.models.UploadFileResponse;
 import io.github.restserver.services.ComputeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,32 +13,35 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 @RestController
 public class FileUploadController {
-    @Autowired
-    private FileUploadHelper fileUploadHelper;
+    private final FileUploadHelper fileUploadHelper;
 
-    @Autowired
-    private MatrixLoaderHelper matrixLoaderHelper;
+    private final MatrixLoaderHelper matrixLoaderHelper;
 
-    @Autowired
-    private PathProvider pathProvider;
+    private final PathProvider pathProvider;
 
-    @Autowired
-    private ComputeService computeService;
+    private final ComputeService computeService;
 
-    @Autowired
-    private ThreadedComputeController threadedComputeController;
+    private final ThreadedComputeController threadedComputeController;
 
-    @Autowired
-    private GrpcServerScalingController grpcServerScalingController;
+    private final GrpcServerScalingController grpcServerScalingController;
+
+    private boolean uploadHit;
+
+    public FileUploadController(FileUploadHelper fileUploadHelper, MatrixLoaderHelper matrixLoaderHelper, PathProvider pathProvider, ComputeService computeService, ThreadedComputeController threadedComputeController, GrpcServerScalingController grpcServerScalingController) {
+        this.fileUploadHelper = fileUploadHelper;
+        this.matrixLoaderHelper = matrixLoaderHelper;
+        this.pathProvider = pathProvider;
+        this.computeService = computeService;
+        this.threadedComputeController = threadedComputeController;
+        this.grpcServerScalingController = grpcServerScalingController;
+    }
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(@RequestParam("file1") MultipartFile file1, @RequestParam("file2") MultipartFile file2) {
-
         try {
             if (file1.isEmpty() || file2.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Files are empty");
@@ -86,12 +88,7 @@ public class FileUploadController {
 
     @PostMapping("/kill-kids")
     public ResponseEntity<?> killChildren() {
-        try {
-            grpcServerScalingController.grpcServerScaleDown();
-            return ResponseEntity.ok(grpcServerScalingController.getPortList().size() + " gRPC workers were killed");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("workers couldn't be killed.\n Please restart the server.");
+        grpcServerScalingController.grpcServerScaleDown();
+        return ResponseEntity.ok(grpcServerScalingController.getPortList().size() + " gRPC workers were killed");
     }
 }

@@ -10,12 +10,12 @@ import java.util.Scanner;
 @Component
 public class MatrixLoaderHelper {
     public ArrayList<ArrayList<Long>> loadFileDataOntoMatrix(String filePath) {
-        ArrayList<ArrayList<Long>> matrix = new ArrayList<ArrayList<Long>>();
+        ArrayList<ArrayList<Long>> matrix = new ArrayList<>();
         try {
             File file = new File(filePath);
             Scanner scanner = new Scanner(file);
             while (scanner.hasNextLine()) {
-                ArrayList<Long> row = new ArrayList<Long>();
+                ArrayList<Long> row = new ArrayList<>();
                 String line = scanner.nextLine();
                 String[] rowElementsInString = line.split(" ");
 

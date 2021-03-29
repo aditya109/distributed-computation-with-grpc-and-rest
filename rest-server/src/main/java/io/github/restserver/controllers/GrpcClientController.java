@@ -71,8 +71,8 @@ public class GrpcClientController {
     public void setResponse(GrpcResponse response) {
         this.response = response;
     }
-
-    public GrpcResponse callMultiplyRowByColumnUsingBlockingStub(int port, ArrayList<Long> row, ArrayList<Long> column, int rowId, int colId) throws InterruptedException {
+    /**
+    public GrpcResponse callMultiplyRowByColumnUsingBlockingStub(int port, ArrayList<Long> row, ArrayList<Long> column, int rowId, int colId) {
 
         ManagedChannel channel = ManagedChannelBuilder
                 .forAddress("localhost", port)
@@ -111,11 +111,15 @@ public class GrpcClientController {
             }
         };
         matrixStub.multiplyRowByColumn(request, responseObserver);
-        finishLatch.await();
+        try {
+            finishLatch.await();
+        } catch (InterruptedException e) {
+            System.out.println("Exception encountered in closing time latch");
+        }
         return response;
     }
-
-    public GrpcResponse callMultiplyRowByColumnUsingAsyncStub(int port, ArrayList<Long> row, ArrayList<Long> column, int rowId, int colId) throws InterruptedException {
+     */
+    public GrpcResponse callMultiplyRowByColumnUsingAsyncStub(int port, ArrayList<Long> row, ArrayList<Long> column, int rowId, int colId) {
         ManagedChannel channel = ManagedChannelBuilder
                 .forAddress("localhost", port)
                 .usePlaintext()

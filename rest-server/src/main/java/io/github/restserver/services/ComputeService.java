@@ -9,11 +9,9 @@ public class ComputeService {
     public boolean isMultiplicationPossible(ArrayList<ArrayList<Long>> matrixA, ArrayList<ArrayList<Long>> matrixB) {
         boolean isMatrixAHasSizeInPowersOfTwo = (matrixA.size() & matrixA.size() - 1) == 0; // bitwise check ;)
         boolean isMatrixBHasSizeInPowersOfTwo = (matrixB.size() & matrixB.size() - 1) == 0; // bitwise check ;)
-        if (matrixA.size() == matrixB.get(0).size()
+        return matrixA.size() == matrixB.get(0).size()
                 && isMatrixAHasSizeInPowersOfTwo
-                && isMatrixBHasSizeInPowersOfTwo)
-            return true;
-        else return false;
+                && isMatrixBHasSizeInPowersOfTwo;
     }
 
     /**
@@ -52,8 +50,8 @@ public class ComputeService {
      * displayMatrix displays a 2-D array
      */
     public void displayMatrix(ArrayList<ArrayList<Long>> matrix) {
-        for (int i = 0; i < matrix.size(); i++) {
-            displayList(matrix.get(i));
+        for (ArrayList<Long> longs : matrix) {
+            displayList(longs);
             System.out.println();
         }
     }

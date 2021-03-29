@@ -9,14 +9,6 @@ public class UploadFileResponse {
     public UploadFileResponse() {
     }
 
-    public ArrayList<ArrayList<Long>> getMultiplicationResult() {
-        return multiplicationResult;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
     public void setStatus(Status status) {
         this.status = status;
     }
@@ -25,8 +17,4 @@ public class UploadFileResponse {
         this.multiplicationResult = multiplicationResult;
     }
 
-    public UploadFileResponse(ArrayList<ArrayList<Long>> multiplicationResult) {
-        this.multiplicationResult = multiplicationResult;
-        this.status = Status.UNKNOWN;
-    }
 }

@@ -1,12 +1,12 @@
 package io.github.restserver.controllers;
 
 import io.github.restserver.helper.PathProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -15,51 +15,35 @@ import java.util.ArrayList;
 @PropertySource("classpath:application.properties")
 public class GrpcServerScalingController {
 
-    @Autowired
-    private Environment env;
+    private final Environment env;
 
-    @Autowired
-    private PathProvider pathProvider;
+    private final PathProvider pathProvider;
 
-    private ArrayList<Integer> portList;
+    private final ArrayList<Integer> portList;
 
-    public GrpcServerScalingController() {
+    public GrpcServerScalingController(Environment env, PathProvider pathProvider) {
         this.portList = new ArrayList<>();
+        this.env = env;
+        this.pathProvider = pathProvider;
     }
 
     public ArrayList<Integer> getPortList() {
         return portList;
     }
 
-    /**
-     * Returns a free port number on localhost.
-     * <p>
-     * Heavily inspired from org.eclipse.jdt.launching.SocketUtil (to avoid a dependency to JDT just because of this).
-     * Slightly improved with close() missing in JDT. And throws exception instead of returning -1.
-     *
-     * @return a free port number on localhost
-     * @throws IllegalStateException if unable to find a free port
-     */
     private int findFreePort() {
-        ServerSocket socket = null;
-        try {
-            socket = new ServerSocket(0);
+        try (ServerSocket socket = new ServerSocket(0)) {
             socket.setReuseAddress(true);
             int port = socket.getLocalPort();
             try {
                 socket.close();
             } catch (IOException e) {
                 // Ignore IOException on close()
+                System.out.println("Problem in closing socket connection");
             }
             return port;
         } catch (IOException e) {
-        } finally {
-            if (socket != null) {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                }
-            }
+            System.out.println("\"Could not find a free TCP/IP port to start embedded Jetty HTTP Server on\"");
         }
         throw new IllegalStateException("Could not find a free TCP/IP port to start embedded Jetty HTTP Server on");
     }
@@ -71,12 +55,13 @@ public class GrpcServerScalingController {
         }
     }
 
-    public void grpcServerScaleUp(boolean isFirstInstance) throws IOException {
+    public void grpcServerScaleUp(boolean isFirstInstance) {
         String envThreshold = env.getProperty("server_threshold");
         if (isFirstInstance) {
             if (envThreshold != null) {
                 int requirements = Integer.parseInt(envThreshold);
                 getFreePortList(requirements);
+                storePortsLocally(this.portList);
             }
             int firstInstancePort = portList.get(0);
             System.out.println("=================================");
@@ -91,29 +76,58 @@ public class GrpcServerScalingController {
         }
     }
 
-    public void spawnGrpcServer(int port) throws IOException {
+    private void storePortsLocally(ArrayList<Integer> portList) {
+        String storageDirectory = pathProvider.provideStoragePath();
+        String pathForPortsFile = storageDirectory + File.separator + "port.txt";
+        File localPortFile;
+        FileWriter localPortFileWriter;
+        try {
+            localPortFile = new File(pathForPortsFile);
+            if (!localPortFile.exists()) {
+                localPortFile.createNewFile();
+            }
+            localPortFileWriter = new FileWriter(pathForPortsFile);
+            StringBuilder p = new StringBuilder();
+            for (int port : portList) p.append(port).append(" ");
+            localPortFileWriter.write(p.toString());
+            localPortFileWriter.flush();
+            localPortFileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void spawnGrpcServer(int port) {
         String spawnScriptPath = pathProvider.provideScriptPath() + File.separator + "spawn.py";
         String cmd = "python " + spawnScriptPath + " " + port;
         System.out.println(cmd);
         Runtime run = Runtime.getRuntime();
-        Process pr = run.exec(cmd);
-        System.out.println("=================================");
-
-    }
-
-    public void grpcServerScaleDown() throws IOException {
-        for (int port : this.portList) {
-            killGrpcServer(port);
-            System.out.println("Worker gRPC on " + port + " was killed.");
+        try {
+            Process pr = run.exec(cmd);
+        } catch (IOException e) {
+            System.out.println("Exception encountered while running python script for spawning gRPC workers");
         }
+        System.out.println("=================================");
+
     }
 
-    public void killGrpcServer(int port) throws IOException {
+    public void grpcServerScaleDown() {
+        killGrpcServer(this.portList);
+    }
+
+    public void killGrpcServer(ArrayList<Integer> ports) {
         String spawnScriptPath = pathProvider.provideScriptPath() + File.separator + "kill.py";
-        String cmd = "python " + spawnScriptPath + " " + port;
-        System.out.println(cmd);
-        Runtime run = Runtime.getRuntime();
-        Process pr = run.exec(cmd);
-        System.out.println("=================================");
+        for (int port : ports) {
+            String cmd = "python " + spawnScriptPath + " " + port;
+            System.out.println(cmd);
+            Runtime run = Runtime.getRuntime();
+            try {
+                Process pr = run.exec(cmd);
+            } catch (IOException e) {
+                System.out.println("Exception encountered while running python script for killing gRPC workers");
+            }
+            System.out.println("Worker gRPC on " + port + " was killed.");
+            System.out.println("=================================");
+        }
     }
 }

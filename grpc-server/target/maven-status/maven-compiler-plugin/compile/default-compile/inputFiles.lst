@@ -1,7 +1,7 @@
-D:\Work\UW\app\grpc-server\src\main\java\io\github\stubs\matrix\computeGrpc.java
-D:\Work\UW\app\grpc-server\src\main\java\io\github\engine\MultiplyBlock.java
-D:\Work\UW\app\grpc-server\src\main\java\io\github\stubs\matrix\Matrix.java
-D:\Work\UW\app\grpc-server\src\main\java\io\github\engine\AddBlock.java
-D:\Work\UW\app\grpc-server\src\main\java\io\github\GrpcServer.java
-D:\Work\UW\app\grpc-server\src\main\java\io\github\helper\MatrixLoader.java
-D:\Work\UW\app\grpc-server\src\main\java\io\github\services\ComputeService.java
+D:\Work\UW\distributed-computation-with-grpc-and-rest\grpc-server\src\main\java\io\github\helper\MatrixLoader.java
+D:\Work\UW\distributed-computation-with-grpc-and-rest\grpc-server\src\main\java\io\github\stubs\matrix\computeGrpc.java
+D:\Work\UW\distributed-computation-with-grpc-and-rest\grpc-server\src\main\java\io\github\engine\AddBlock.java
+D:\Work\UW\distributed-computation-with-grpc-and-rest\grpc-server\src\main\java\io\github\stubs\matrix\Matrix.java
+D:\Work\UW\distributed-computation-with-grpc-and-rest\grpc-server\src\main\java\io\github\engine\MultiplyBlock.java
+D:\Work\UW\distributed-computation-with-grpc-and-rest\grpc-server\src\main\java\io\github\GrpcServer.java
+D:\Work\UW\distributed-computation-with-grpc-and-rest\grpc-server\src\main\java\io\github\services\ComputeService.java
