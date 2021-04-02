@@ -1,6 +1,7 @@
 # distributed-computation-with-`grpc`-and-`rest`
 
 [![BCH compliance](https://bettercodehub.com/edge/badge/aditya109/distributed-computation-with-grpc-and-rest?branch=pre-release-v1.1)](https://bettercodehub.com/)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/20916e2587724612a05d70cc05a8fdab)](https://www.codacy.com/gh/aditya109/distributed-computation-with-grpc-and-rest/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=aditya109/distributed-computation-with-grpc-and-rest&amp;utm_campaign=Badge_Grade)
 
 Distributed computing with `deadline-footprinting` functionality in Spring Boot server acting as gRPC Client (as Master) and gRPC Server (as Workers). Also the Spring Boot server can auto-scale workers to a configurable threshold. 
 
