@@ -4,14 +4,10 @@ import io.github.restserver.stubs.matrix.Matrix;
 import io.github.restserver.stubs.matrix.computeGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.Status;
-import io.grpc.stub.StreamObserver;
 
 import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
 
 import static io.github.restserver.stubs.matrix.computeGrpc.newBlockingStub;
-import static io.github.restserver.stubs.matrix.computeGrpc.newStub;
 
 class GrpcResponse {
     @Override

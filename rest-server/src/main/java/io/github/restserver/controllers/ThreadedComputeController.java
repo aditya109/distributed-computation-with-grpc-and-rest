@@ -13,44 +13,58 @@ import java.util.concurrent.*;
 @Component
 public class ThreadedComputeController {
 
-    private DeadlineFootPrinter deadlineFootPrinter;
-    private GrpcServerScalingController grpcServerScalingController;
-
-    static class GrpcClientCallable implements Callable<GrpcResponse> {
-        public int port;
-        public ArrayList<Long> row;
-        public ArrayList<Long> column;
-        public int rowId;
-        public int columnId;
-        private Logger logger;
-
-        public GrpcClientCallable(int port, ArrayList<Long> row, ArrayList<Long> column, int rowId, int columnId) {
-            this.port = port;
-            this.row = row;
-            this.column = column;
-            this.rowId = rowId;
-            this.columnId = columnId;
-
-        }
-
-        @Override
-        public GrpcResponse call() {
-            return new GrpcClientController()
-                    .callMultiplyRowByColumnUsingAsyncStub(
-                            this.port,
-                            this.row,
-                            this.column,
-                            this.rowId,
-                            this.columnId
-                    );
-        }
-    }
-
+    private final DeadlineFootPrinter deadlineFootPrinter;
+    private final GrpcServerScalingController grpcServerScalingController;
     private int counter;
     private ArrayList<Integer> portList;
     private boolean isSetupDone;
     private boolean areWorkersUp;
-    private Logger logger;
+    private final Logger logger;
+
+    public ArrayList<ArrayList<Long>> driver(int workers, long dimension, ArrayList<ArrayList<Long>> matrixA, ArrayList<ArrayList<Long>> matrixB) {
+        ArrayList<ArrayList<Long>> matrixC = new ArrayList<>();     // resultant matrixC = matrixA * matrixB
+        ExecutorService pool = Executors.newFixedThreadPool(workers);
+        Set<Future<GrpcResponse>> elements = new HashSet<>();
+
+        int iterativeLimit = matrixA.size();
+
+        for (int i = 0; i < iterativeLimit; i++) {
+            for (int j = 0; j < iterativeLimit; j++) {
+                Callable<GrpcResponse> e =
+                        new GrpcClientCallable(
+                                getPortUsingRR(),
+                                matrixA.get(i),
+                                matrixB.get(j),
+                                i,
+                                j
+                        );
+                Future future = pool.submit(e);
+                elements.add(future);
+
+            }
+        }
+
+        for (int i = 0; i < dimension; i++) {
+            ArrayList<Long> row = new ArrayList<>();
+            for (int j = 0; j < dimension; j++) {
+                row.add(0L);
+            }
+            matrixC.add(row);
+        }
+
+        for (Future<GrpcResponse> e : elements) {
+            GrpcResponse temp = null;
+            try {
+                temp = e.get();
+            } catch (InterruptedException | ExecutionException interruptedException) {
+                this.logger.error("Exception encountered in retrieving responses from gRPC workers");
+            }
+            if (temp != null) {
+                matrixC.get(temp.getRowId()).set(temp.getColumnId(), temp.getElement());
+            }
+        }
+        return matrixC;
+    }
 
     public ThreadedComputeController(DeadlineFootPrinter deadlineFootPrinter, GrpcServerScalingController grpcServerScalingController) {
         this.counter = 0;
@@ -90,49 +104,33 @@ public class ThreadedComputeController {
         return portList.get(counter);
     }
 
-    public ArrayList<ArrayList<Long>> driver(int workers, long dimension, ArrayList<ArrayList<Long>> matrixA, ArrayList<ArrayList<Long>> matrixB) {
-        ArrayList<ArrayList<Long>> matrixC = new ArrayList<>();     // resultant matrixC = matrixA * matrixB
-        ExecutorService pool = Executors.newFixedThreadPool(workers);
-        Set<Future<GrpcResponse>> elements = new HashSet<>();
+    static class GrpcClientCallable implements Callable<GrpcResponse> {
+        public int port;
+        public ArrayList<Long> row;
+        public ArrayList<Long> column;
+        public int rowId;
+        public int columnId;
 
-        int iterativeLimit = matrixA.size();
+        public GrpcClientCallable(int port, ArrayList<Long> row, ArrayList<Long> column, int rowId, int columnId) {
+            this.port = port;
+            this.row = row;
+            this.column = column;
+            this.rowId = rowId;
+            this.columnId = columnId;
 
-        for (int i = 0; i < iterativeLimit; i++) {
-            for (int j = 0; j < iterativeLimit; j++) {
-                Callable<GrpcResponse> e =
-                        new GrpcClientCallable(
-                                getPortUsingRR(),
-                                matrixA.get(i),
-                                matrixB.get(j),
-                                i,
-                                j
-                        );
-                Future future = pool.submit(e);
-                elements.add(future);
-
-            }
         }
 
-        for (int i = 0; i < dimension; i++) {
-            ArrayList<Long> row = new ArrayList<>();
-            for (int j = 0; j < dimension; j++) {
-                row.add(0L);
-            }
-            matrixC.add(row);
+        @Override
+        public GrpcResponse call() {
+            return new GrpcClientController()
+                    .callMultiplyRowByColumnUsingAsyncStub(
+                            this.port,
+                            this.row,
+                            this.column,
+                            this.rowId,
+                            this.columnId
+                    );
         }
-
-        for (Future<GrpcResponse> e : elements) {
-            GrpcResponse temp = null;
-            try {
-                temp = e.get();
-            } catch (InterruptedException | ExecutionException interruptedException) {
-                logger.error("Exception encountered in retrieving responses from gRPC workers");
-            }
-            if (temp != null) {
-                matrixC.get(temp.getRowId()).set(temp.getColumnId(), temp.getElement());
-            }
-        }
-        return matrixC;
     }
 }
 
