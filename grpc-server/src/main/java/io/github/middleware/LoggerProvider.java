@@ -4,14 +4,15 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class LoggerProvider {
-    Logger logger;
+    private Object object;
 
     public LoggerProvider(Object object) {
-        this.logger = LogManager.getLogger(object.getClass());
+        this.object = object;
     }
 
     public Logger provideLoggerInstance() {
+        Logger logger = LogManager.getLogger(object.getClass());
         logger.trace("configuration file defined to be :: " + System.getProperty("log4j.configurationFile"));
-        return this.logger;
+        return logger;
     }
 }
