@@ -1,5 +1,7 @@
 package io.github.restserver.helper;
 
+import io.github.restserver.middleware.LoggerProvider;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -8,7 +10,13 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 @Component
-public class MatrixLoaderHelper {
+public class MatrixLoader {
+    private final Logger logger;
+
+    public MatrixLoader() {
+        this.logger = new LoggerProvider(MatrixLoader.class).provideLoggerInstance();
+    }
+
     public ArrayList<ArrayList<Long>> loadFileDataOntoMatrix(String filePath) {
         ArrayList<ArrayList<Long>> matrix = new ArrayList<>();
         try {
@@ -30,8 +38,7 @@ public class MatrixLoaderHelper {
             scanner.close();
             return matrix;
         } catch (FileNotFoundException e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
+            logger.error("error occurred while loading into output matrix");
         }
         return matrix;
     }

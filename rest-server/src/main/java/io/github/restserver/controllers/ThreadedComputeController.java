@@ -1,7 +1,8 @@
 package io.github.restserver.controllers;
 
-import io.github.restserver.helper.DeadlineFootprintHelper;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.github.restserver.helper.DeadlineFootPrinter;
+import io.github.restserver.middleware.LoggerProvider;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -11,79 +12,14 @@ import java.util.concurrent.*;
 
 @Component
 public class ThreadedComputeController {
-    @Autowired
-    private DeadlineFootprintHelper deadlineFootprintHelper;
 
-    @Autowired
-    private GrpcServerScalingController grpcServerScalingController;
-
-    static class GrpcClientCallable implements Callable<GrpcResponse> {
-        public int port;
-        public ArrayList<Long> row;
-        public ArrayList<Long> column;
-        public int rowId;
-        public int columnId;
-
-        public GrpcClientCallable(int port, ArrayList<Long> row, ArrayList<Long> column, int rowId, int columnId) {
-            this.port = port;
-            this.row = row;
-            this.column = column;
-            this.rowId = rowId;
-            this.columnId = columnId;
-        }
-
-        @Override
-        public GrpcResponse call() {
-            return new GrpcClientController()
-                    .callMultiplyRowByColumnUsingAsyncStub(
-                            this.port,
-                            this.row,
-                            this.column,
-                            this.rowId,
-                            this.columnId
-                    );
-        }
-    }
-
+    private final DeadlineFootPrinter deadlineFootPrinter;
+    private final GrpcServerScalingController grpcServerScalingController;
     private int counter;
     private ArrayList<Integer> portList;
     private boolean isSetupDone;
     private boolean areWorkersUp;
-
-    public ThreadedComputeController() {
-        this.counter = 0;
-        this.isSetupDone = false;
-        this.areWorkersUp = false;
-    }
-
-    public void setup(int workers, long dimension, ArrayList<ArrayList<Long>> matrixA, ArrayList<ArrayList<Long>> matrixB) {
-        if (!this.isSetupDone) {
-            this.portList = this.grpcServerScalingController.getPortList();
-            grpcServerScalingController.grpcServerScaleUp(true);
-            grpcServerScalingController.grpcServerScaleUp(false);
-            this.isSetupDone = true;
-            this.areWorkersUp = true;
-            driver(workers, dimension, matrixA, matrixB);
-        }
-    }
-
-    public ArrayList<ArrayList<Long>> run(ArrayList<ArrayList<Long>> matrixA, ArrayList<ArrayList<Long>> matrixB) {
-        long dimension = matrixA.size();
-        int workers = deadlineFootprintHelper.computeWorkersRequired(dimension);
-        setup(workers, dimension, matrixA, matrixB);
-        if (!this.areWorkersUp) {
-            grpcServerScalingController.grpcServerScaleUp(false);
-        }
-        return driver(workers, dimension, matrixA, matrixB);
-    }
-
-    public int getPortUsingRR() {
-        counter++;
-        if (counter == portList.size()) {
-            counter = 0;
-        }
-        return portList.get(counter);
-    }
+    private final Logger logger;
 
     public ArrayList<ArrayList<Long>> driver(int workers, long dimension, ArrayList<ArrayList<Long>> matrixA, ArrayList<ArrayList<Long>> matrixB) {
         ArrayList<ArrayList<Long>> matrixC = new ArrayList<>();     // resultant matrixC = matrixA * matrixB
@@ -121,13 +57,80 @@ public class ThreadedComputeController {
             try {
                 temp = e.get();
             } catch (InterruptedException | ExecutionException interruptedException) {
-                System.out.println("Exception encountered in retrieving responses from gRPC workers");
+                this.logger.error("Exception encountered in retrieving responses from gRPC workers");
             }
             if (temp != null) {
                 matrixC.get(temp.getRowId()).set(temp.getColumnId(), temp.getElement());
             }
         }
         return matrixC;
+    }
+
+    public ThreadedComputeController(DeadlineFootPrinter deadlineFootPrinter, GrpcServerScalingController grpcServerScalingController) {
+        this.counter = 0;
+        this.isSetupDone = false;
+        this.areWorkersUp = false;
+        this.logger = new LoggerProvider(ThreadedComputeController.class).provideLoggerInstance();
+        this.deadlineFootPrinter = deadlineFootPrinter;
+        this.grpcServerScalingController = grpcServerScalingController;
+    }
+
+    public void setup(int workers, long dimension, ArrayList<ArrayList<Long>> matrixA, ArrayList<ArrayList<Long>> matrixB) {
+        if (!this.isSetupDone) {
+            this.portList = this.grpcServerScalingController.getPortList();
+            grpcServerScalingController.grpcServerScaleUp(true);
+            grpcServerScalingController.grpcServerScaleUp(false);
+            this.isSetupDone = true;
+            this.areWorkersUp = true;
+            driver(workers, dimension, matrixA, matrixB);
+        }
+    }
+
+    public ArrayList<ArrayList<Long>> run(ArrayList<ArrayList<Long>> matrixA, ArrayList<ArrayList<Long>> matrixB) {
+        long dimension = matrixA.size();
+        int workers = deadlineFootPrinter.computeWorkersRequired(dimension);
+        setup(workers, dimension, matrixA, matrixB);
+        if (!this.areWorkersUp) {
+            grpcServerScalingController.grpcServerScaleUp(false);
+        }
+        return driver(workers, dimension, matrixA, matrixB);
+    }
+
+    public int getPortUsingRR() {
+        counter++;
+        if (counter == portList.size()) {
+            counter = 0;
+        }
+        return portList.get(counter);
+    }
+
+    static class GrpcClientCallable implements Callable<GrpcResponse> {
+        public int port;
+        public ArrayList<Long> row;
+        public ArrayList<Long> column;
+        public int rowId;
+        public int columnId;
+
+        public GrpcClientCallable(int port, ArrayList<Long> row, ArrayList<Long> column, int rowId, int columnId) {
+            this.port = port;
+            this.row = row;
+            this.column = column;
+            this.rowId = rowId;
+            this.columnId = columnId;
+
+        }
+
+        @Override
+        public GrpcResponse call() {
+            return new GrpcClientController()
+                    .callMultiplyRowByColumnUsingAsyncStub(
+                            this.port,
+                            this.row,
+                            this.column,
+                            this.rowId,
+                            this.columnId
+                    );
+        }
     }
 }
 

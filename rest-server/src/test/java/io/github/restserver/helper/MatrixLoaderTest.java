@@ -5,18 +5,16 @@ import org.junit.jupiter.api.*;
 import java.io.File;
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-public class MatrixLoaderHelperTest {
+public class MatrixLoaderTest {
 
     private String filepath;
     private PathProvider pathProvider;
-    private MatrixLoaderHelper matrixLoaderHelper;
+    private MatrixLoader matrixLoader;
 
-    public MatrixLoaderHelperTest() {
+    public MatrixLoaderTest() {
         this.filepath = "";
         pathProvider = new PathProvider();
-        matrixLoaderHelper = new MatrixLoaderHelper();
+        matrixLoader = new MatrixLoader();
     }
 
     @BeforeEach
@@ -31,7 +29,7 @@ public class MatrixLoaderHelperTest {
     @DisplayName("Checking if the the loaded file gives correct matrix or not")
     void checkIfLoadFileDataOntoMatrixForValidity() {
         filepath = pathProvider.provideStoragePath() + File.separator + "a.txt";
-        ArrayList<ArrayList<Long>> actualMatrix =  matrixLoaderHelper.loadFileDataOntoMatrix(filepath);
+        ArrayList<ArrayList<Long>> actualMatrix =  matrixLoader.loadFileDataOntoMatrix(filepath);
         ArrayList<ArrayList<Long>> expectedMatrix = new ArrayList<>();
         long count = 1L;
         for (int i = 0; i < 4; i++) {

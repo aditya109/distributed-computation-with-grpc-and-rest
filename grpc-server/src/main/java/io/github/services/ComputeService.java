@@ -2,7 +2,6 @@ package io.github.services;
 
 import io.github.engine.AddBlock;
 import io.github.engine.MultiplyBlock;
-import io.github.helper.MatrixLoader;
 import io.github.stubs.matrix.Matrix;
 import io.github.stubs.matrix.computeGrpc;
 import io.grpc.stub.StreamObserver;
@@ -10,12 +9,7 @@ import io.grpc.stub.StreamObserver;
 import java.util.List;
 
 public class ComputeService extends computeGrpc.computeImplBase {
-    private AddBlock add;
-    private MultiplyBlock mult;
-    private MatrixLoader matrixLoader;
-
     public ComputeService() {
-        this.matrixLoader = new MatrixLoader();
     }
 
     @Override
@@ -25,8 +19,8 @@ public class ComputeService extends computeGrpc.computeImplBase {
         int rowId = request.getRowId();
         int columnId = request.getColumnId();
 
-        mult = new MultiplyBlock(row, column);
-        add = new AddBlock(mult.performCompute());
+        MultiplyBlock mult = new MultiplyBlock(row, column);
+        AddBlock add = new AddBlock(mult.performCompute());
         long element = add.performCompute();
 
         Matrix.multiplyBlockResponse.Builder response = Matrix.multiplyBlockResponse.newBuilder();

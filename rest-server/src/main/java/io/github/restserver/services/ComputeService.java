@@ -1,11 +1,19 @@
 package io.github.restserver.services;
 
+import io.github.restserver.middleware.LoggerProvider;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 
 @Service
 public class ComputeService {
+    private final Logger logger;
+
+    public ComputeService() {
+        this.logger = new LoggerProvider(ComputeService.class).provideLoggerInstance();
+    }
+
     public boolean isMultiplicationPossible(ArrayList<ArrayList<Long>> matrixA, ArrayList<ArrayList<Long>> matrixB) {
         boolean isMatrixAHasSizeInPowersOfTwo = (matrixA.size() & matrixA.size() - 1) == 0; // bitwise check ;)
         boolean isMatrixBHasSizeInPowersOfTwo = (matrixB.size() & matrixB.size() - 1) == 0; // bitwise check ;)
@@ -42,7 +50,7 @@ public class ComputeService {
      */
     public void displayList(ArrayList<Long> list) {
         for (long element : list) {
-            System.out.print(element + " ");
+            logger.info(element + " ");
         }
     }
 
@@ -52,7 +60,7 @@ public class ComputeService {
     public void displayMatrix(ArrayList<ArrayList<Long>> matrix) {
         for (ArrayList<Long> longs : matrix) {
             displayList(longs);
-            System.out.println();
+            logger.info("\n");
         }
     }
 }
