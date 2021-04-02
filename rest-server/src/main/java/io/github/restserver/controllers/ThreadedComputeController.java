@@ -1,7 +1,8 @@
 package io.github.restserver.controllers;
 
-import io.github.restserver.helper.DeadlineFootprintHelper;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.github.restserver.helper.DeadlineFootPrinter;
+import io.github.restserver.middleware.LoggerProvider;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -11,10 +12,8 @@ import java.util.concurrent.*;
 
 @Component
 public class ThreadedComputeController {
-    @Autowired
-    private DeadlineFootprintHelper deadlineFootprintHelper;
 
-    @Autowired
+    private DeadlineFootPrinter deadlineFootPrinter;
     private GrpcServerScalingController grpcServerScalingController;
 
     static class GrpcClientCallable implements Callable<GrpcResponse> {
@@ -23,6 +22,7 @@ public class ThreadedComputeController {
         public ArrayList<Long> column;
         public int rowId;
         public int columnId;
+        private Logger logger;
 
         public GrpcClientCallable(int port, ArrayList<Long> row, ArrayList<Long> column, int rowId, int columnId) {
             this.port = port;
@@ -30,6 +30,7 @@ public class ThreadedComputeController {
             this.column = column;
             this.rowId = rowId;
             this.columnId = columnId;
+
         }
 
         @Override
@@ -49,11 +50,15 @@ public class ThreadedComputeController {
     private ArrayList<Integer> portList;
     private boolean isSetupDone;
     private boolean areWorkersUp;
+    private Logger logger;
 
-    public ThreadedComputeController() {
+    public ThreadedComputeController(DeadlineFootPrinter deadlineFootPrinter, GrpcServerScalingController grpcServerScalingController) {
         this.counter = 0;
         this.isSetupDone = false;
         this.areWorkersUp = false;
+        this.logger = new LoggerProvider(ThreadedComputeController.class).provideLoggerInstance();
+        this.deadlineFootPrinter = deadlineFootPrinter;
+        this.grpcServerScalingController = grpcServerScalingController;
     }
 
     public void setup(int workers, long dimension, ArrayList<ArrayList<Long>> matrixA, ArrayList<ArrayList<Long>> matrixB) {
@@ -69,7 +74,7 @@ public class ThreadedComputeController {
 
     public ArrayList<ArrayList<Long>> run(ArrayList<ArrayList<Long>> matrixA, ArrayList<ArrayList<Long>> matrixB) {
         long dimension = matrixA.size();
-        int workers = deadlineFootprintHelper.computeWorkersRequired(dimension);
+        int workers = deadlineFootPrinter.computeWorkersRequired(dimension);
         setup(workers, dimension, matrixA, matrixB);
         if (!this.areWorkersUp) {
             grpcServerScalingController.grpcServerScaleUp(false);
@@ -121,7 +126,7 @@ public class ThreadedComputeController {
             try {
                 temp = e.get();
             } catch (InterruptedException | ExecutionException interruptedException) {
-                System.out.println("Exception encountered in retrieving responses from gRPC workers");
+                logger.error("Exception encountered in retrieving responses from gRPC workers");
             }
             if (temp != null) {
                 matrixC.get(temp.getRowId()).set(temp.getColumnId(), temp.getElement());

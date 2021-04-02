@@ -1,6 +1,8 @@
 package io.github.restserver.controllers;
 
 import io.github.restserver.helper.PathProvider;
+import io.github.restserver.middleware.LoggerProvider;
+import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -14,17 +16,16 @@ import java.util.ArrayList;
 @Component
 @PropertySource("classpath:application.properties")
 public class GrpcServerScalingController {
-
+    private Logger logger;
     private final Environment env;
-
     private final PathProvider pathProvider;
-
     private final ArrayList<Integer> portList;
 
     public GrpcServerScalingController(Environment env, PathProvider pathProvider) {
         this.portList = new ArrayList<>();
         this.env = env;
         this.pathProvider = pathProvider;
+        this.logger = new LoggerProvider(GrpcServerScalingController.class).provideLoggerInstance();
     }
 
     public ArrayList<Integer> getPortList() {
@@ -39,11 +40,11 @@ public class GrpcServerScalingController {
                 socket.close();
             } catch (IOException e) {
                 // Ignore IOException on close()
-                System.out.println("Problem in closing socket connection");
+                logger.error("Problem in closing socket connection");
             }
             return port;
         } catch (IOException e) {
-            System.out.println("\"Could not find a free TCP/IP port to start embedded Jetty HTTP Server on\"");
+            logger.error("\"Could not find a free TCP/IP port to start embedded Jetty HTTP Server on\"");
         }
         throw new IllegalStateException("Could not find a free TCP/IP port to start embedded Jetty HTTP Server on");
     }
@@ -64,13 +65,13 @@ public class GrpcServerScalingController {
                 storePortsLocally(this.portList);
             }
             int firstInstancePort = portList.get(0);
-            System.out.println("=================================");
-            System.out.println("Spawning gRPC server at " + firstInstancePort);
+            logger.info("=================================");
+            logger.info("Spawning gRPC server at " + firstInstancePort);
             spawnGrpcServer(firstInstancePort);
         } else {
             for (int i = 1; i < portList.size(); i++) {
-                System.out.println("=================================");
-                System.out.println("Spawning gRPC server at " + portList.get(i));
+                logger.info("=================================");
+                logger.info("Spawning gRPC server at " + portList.get(i));
                 spawnGrpcServer(portList.get(i));
             }
         }
@@ -100,14 +101,14 @@ public class GrpcServerScalingController {
     public void spawnGrpcServer(int port) {
         String spawnScriptPath = pathProvider.provideScriptPath() + File.separator + "spawn.py";
         String cmd = "python " + spawnScriptPath + " " + port;
-        System.out.println(cmd);
+        logger.debug(cmd);
         Runtime run = Runtime.getRuntime();
         try {
             Process pr = run.exec(cmd);
         } catch (IOException e) {
-            System.out.println("Exception encountered while running python script for spawning gRPC workers");
+            logger.error("Exception encountered while running python script for spawning gRPC workers");
         }
-        System.out.println("=================================");
+        logger.error("=================================");
 
     }
 
@@ -119,15 +120,15 @@ public class GrpcServerScalingController {
         String spawnScriptPath = pathProvider.provideScriptPath() + File.separator + "kill.py";
         for (int port : ports) {
             String cmd = "python " + spawnScriptPath + " " + port;
-            System.out.println(cmd);
+            logger.debug(cmd);
             Runtime run = Runtime.getRuntime();
             try {
                 Process pr = run.exec(cmd);
             } catch (IOException e) {
-                System.out.println("Exception encountered while running python script for killing gRPC workers");
+                logger.error("Exception encountered while running python script for killing gRPC workers");
             }
-            System.out.println("Worker gRPC on " + port + " was killed.");
-            System.out.println("=================================");
+            logger.info("Worker gRPC on " + port + " was killed.");
+            logger.info("=================================");
         }
     }
 }

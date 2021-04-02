@@ -1,16 +1,20 @@
 package io.github.restserver.helper;
 
+import io.github.restserver.middleware.LoggerProvider;
+import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 @Component
 @PropertySource("classpath:application.properties")
-public class DeadlineFootprintHelper {
+public class DeadlineFootPrinter {
     private final Environment env;
+    private Logger logger;
 
-    public DeadlineFootprintHelper(Environment env) {
+    public DeadlineFootPrinter(Environment env) {
         this.env = env;
+        this.logger = new LoggerProvider(DeadlineFootPrinter.class).provideLoggerInstance();
     }
 
     public int computeWorkersRequired(long dimension) {
@@ -22,11 +26,9 @@ public class DeadlineFootprintHelper {
         if (envDeadline != null && envThreshold != null && envDelta != null) {
             long deadLine = Long.parseLong(envDeadline);
             int threshold = Integer.parseInt(envThreshold);
-            long delta = Long.parseLong(envDelta);
             workers = (int) ((responseTimeInMills * dimension * dimension) / deadLine) + 1;
-//            System.out.println(deadLine + " " + responseTimeInMills + " " + dimension + " " + delta);
             if (threshold < workers) {
-                System.out.println("Worker value exceeding threshold.\nSetting its value to threshold.");
+                logger.warn("Worker value exceeding threshold.\nSetting its value to threshold.");
                 workers = threshold;
             }
         }
