@@ -3,10 +3,10 @@ package io.github.restserver.controllers;
 import io.github.restserver.helper.FileUploader;
 import io.github.restserver.helper.MatrixLoader;
 import io.github.restserver.helper.PathProvider;
+import io.github.restserver.middleware.LoggerProvider;
 import io.github.restserver.models.Status;
 import io.github.restserver.models.UploadFileResponse;
 import io.github.restserver.services.ComputeService;
-import io.github.restserver.middleware.LoggerProvider;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,13 +19,13 @@ import java.util.ArrayList;
 
 @RestController
 public class FileUploadController {
-    private Logger logger;
     private final FileUploader fileUploader;
     private final MatrixLoader matrixLoader;
     private final PathProvider pathProvider;
     private final ComputeService computeService;
     private final ThreadedComputeController threadedComputeController;
     private final GrpcServerScalingController grpcServerScalingController;
+    private final Logger logger;
 
     public FileUploadController(FileUploader fileUploader, MatrixLoader matrixLoader, PathProvider pathProvider, ComputeService computeService, ThreadedComputeController threadedComputeController, GrpcServerScalingController grpcServerScalingController) {
         this.fileUploader = fileUploader;

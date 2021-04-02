@@ -11,7 +11,7 @@ import java.util.Scanner;
 
 @Component
 public class MatrixLoader {
-    private Logger logger;
+    private final Logger logger;
 
     public MatrixLoader() {
         this.logger = new LoggerProvider(MatrixLoader.class).provideLoggerInstance();

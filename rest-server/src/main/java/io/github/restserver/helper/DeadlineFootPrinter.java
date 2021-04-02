@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @PropertySource("classpath:application.properties")
 public class DeadlineFootPrinter {
     private final Environment env;
-    private Logger logger;
+    private final Logger logger;
 
     public DeadlineFootPrinter(Environment env) {
         this.env = env;

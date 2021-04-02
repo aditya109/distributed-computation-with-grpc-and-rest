@@ -71,53 +71,49 @@ public class GrpcClientController {
     public void setResponse(GrpcResponse response) {
         this.response = response;
     }
+
     /**
-    public GrpcResponse callMultiplyRowByColumnUsingBlockingStub(int port, ArrayList<Long> row, ArrayList<Long> column, int rowId, int colId) {
-
-        ManagedChannel channel = ManagedChannelBuilder
-                .forAddress("localhost", port)
-                .usePlaintext()
-                .build();
-        computeGrpc.computeStub matrixStub = newStub(channel);
-        Matrix.multiplyBlockRequest.Builder builder = Matrix.multiplyBlockRequest.newBuilder();
-        for (long i : row) {
-            builder = builder.addRow(i);
-        }
-        for (long i : column) {
-            builder = builder.addColumn(i);
-        }
-        Matrix.multiplyBlockRequest request = builder.setRowId(rowId).setColumnId(colId).build();
-        final CountDownLatch finishLatch = new CountDownLatch(1);
-        StreamObserver<Matrix.multiplyBlockResponse> responseObserver = new StreamObserver<Matrix.multiplyBlockResponse>() {
-
-            @Override
-            public void onNext(Matrix.multiplyBlockResponse multiplyBlockResponse) {
-                GrpcResponse response = null;
-                response.setElement(multiplyBlockResponse.getElement());
-                response.setColumnId(multiplyBlockResponse.getColumnId());
-                response.setRowId(multiplyBlockResponse.getRowId());
-                setResponse(response);
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                Status status = Status.fromThrowable(throwable);
-                finishLatch.countDown();
-            }
-
-            @Override
-            public void onCompleted() {
-                finishLatch.countDown();
-            }
-        };
-        matrixStub.multiplyRowByColumn(request, responseObserver);
-        try {
-            finishLatch.await();
-        } catch (InterruptedException e) {
-            System.out.println("Exception encountered in closing time latch");
-        }
-        return response;
-    }
+     * public GrpcResponse callMultiplyRowByColumnUsingBlockingStub(int port, ArrayList<Long> row, ArrayList<Long> column, int rowId, int colId) {
+     * <p>
+     * ManagedChannel channel = ManagedChannelBuilder
+     * .forAddress("localhost", port)
+     * .usePlaintext()
+     * .build();
+     * computeGrpc.computeStub matrixStub = newStub(channel);
+     * Matrix.multiplyBlockRequest.Builder builder = Matrix.multiplyBlockRequest.newBuilder();
+     * for (long i : row) {
+     * builder = builder.addRow(i);
+     * }
+     * for (long i : column) {
+     * builder = builder.addColumn(i);
+     * }
+     * Matrix.multiplyBlockRequest request = builder.setRowId(rowId).setColumnId(colId).build();
+     * final CountDownLatch finishLatch = new CountDownLatch(1);
+     * StreamObserver<Matrix.multiplyBlockResponse> responseObserver = new StreamObserver<Matrix.multiplyBlockResponse>() {
+     *
+     * @Override public void onNext(Matrix.multiplyBlockResponse multiplyBlockResponse) {
+     * GrpcResponse response = null;
+     * response.setElement(multiplyBlockResponse.getElement());
+     * response.setColumnId(multiplyBlockResponse.getColumnId());
+     * response.setRowId(multiplyBlockResponse.getRowId());
+     * setResponse(response);
+     * }
+     * @Override public void onError(Throwable throwable) {
+     * Status status = Status.fromThrowable(throwable);
+     * finishLatch.countDown();
+     * }
+     * @Override public void onCompleted() {
+     * finishLatch.countDown();
+     * }
+     * };
+     * matrixStub.multiplyRowByColumn(request, responseObserver);
+     * try {
+     * finishLatch.await();
+     * } catch (InterruptedException e) {
+     * System.out.println("Exception encountered in closing time latch");
+     * }
+     * return response;
+     * }
      */
     public GrpcResponse callMultiplyRowByColumnUsingAsyncStub(int port, ArrayList<Long> row, ArrayList<Long> column, int rowId, int colId) {
         ManagedChannel channel = ManagedChannelBuilder

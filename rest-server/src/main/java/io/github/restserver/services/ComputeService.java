@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 @Service
 public class ComputeService {
-    private Logger logger;
+    private final Logger logger;
 
     public ComputeService() {
         this.logger = new LoggerProvider(ComputeService.class).provideLoggerInstance();

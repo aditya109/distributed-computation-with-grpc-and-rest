@@ -12,7 +12,7 @@ import java.nio.file.StandardCopyOption;
 @Component
 public class FileUploader {
     private final PathProvider pathProvider;
-    private Logger logger;
+    private final Logger logger;
 
     public FileUploader(PathProvider pathProvider) {
         this.pathProvider = pathProvider;
