@@ -1,5 +1,7 @@
 # distributed-computation-with-`grpc`-and-`rest`
 
+[![BCH compliance](https://bettercodehub.com/edge/badge/aditya109/distributed-computation-with-grpc-and-rest?branch=pre-release-v1.1)](https://bettercodehub.com/)
+
 Distributed computing with `deadline-footprinting` functionality in Spring Boot server acting as gRPC Client (as Master) and gRPC Server (as Workers). Also the Spring Boot server can auto-scale workers to a configurable threshold. 
 
 ## Prerequisites for running the project
