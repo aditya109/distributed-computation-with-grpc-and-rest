@@ -1,4 +1,4 @@
-package io.github.middleware;
+package io.github.restserver.middleware;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,3 +16,10 @@ public class LoggerProvider {
         return logger;
     }
 }
+
+/**
+private static Logger logger;
+logger = new LoggerProvider(new GrpcServer()).provideLoggerInstance();
+
+
+ */

@@ -12,7 +12,7 @@ public class PortFinder {
 
     public int findFreePort() {
         // receiving a fresh instance from LoggerProvider
-        logger = new LoggerProvider(new PortFinder()).provideLoggerInstance();
+        logger = new LoggerProvider(PortFinder.class).provideLoggerInstance();
 
         try (ServerSocket socket = new ServerSocket(0)) {
             try {

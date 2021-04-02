@@ -1,6 +1,7 @@
 io\github\stubs\matrix\Matrix$multiplyBlockResponse.class
 io\github\stubs\matrix\Matrix$multiplyBlockRequestOrBuilder.class
 io\github\stubs\matrix\computeGrpc$computeFileDescriptorSupplier.class
+io\github\helper\PortFinder.class
 io\github\services\ComputeService.class
 io\github\stubs\matrix\computeGrpc$computeImplBase.class
 io\github\stubs\matrix\computeGrpc$computeFutureStub.class

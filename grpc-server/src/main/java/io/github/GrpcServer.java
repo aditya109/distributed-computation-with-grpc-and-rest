@@ -31,7 +31,7 @@ public class GrpcServer {
 
     public static void main(String[] args) {
         // receiving a fresh instance from LoggerProvider
-        logger = new LoggerProvider(new GrpcServer()).provideLoggerInstance();
+        logger = new LoggerProvider(GrpcServer.class).provideLoggerInstance();
         int fallbackPort = 8097;
         try {
             fallbackPort = new PortFinder().findFreePort();
@@ -43,7 +43,7 @@ public class GrpcServer {
         getEnvPort(args);
         // setting port to 9595
         final int PORT = envPort != -1 ? envPort : fallbackPort;
-        logger.info("Port set to " + PORT);
+        logger.info("port set to " + PORT);
         Server server = ServerBuilder
                 // adding port for starting the server
                 .forPort(PORT)

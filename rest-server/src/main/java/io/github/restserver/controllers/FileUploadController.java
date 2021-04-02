@@ -6,6 +6,8 @@ import io.github.restserver.helper.PathProvider;
 import io.github.restserver.models.Status;
 import io.github.restserver.models.UploadFileResponse;
 import io.github.restserver.services.ComputeService;
+import io.github.restserver.middleware.LoggerProvider;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,19 +19,13 @@ import java.util.ArrayList;
 
 @RestController
 public class FileUploadController {
+    private Logger logger;
     private final FileUploadHelper fileUploadHelper;
-
     private final MatrixLoaderHelper matrixLoaderHelper;
-
     private final PathProvider pathProvider;
-
     private final ComputeService computeService;
-
     private final ThreadedComputeController threadedComputeController;
-
     private final GrpcServerScalingController grpcServerScalingController;
-
-    private boolean uploadHit;
 
     public FileUploadController(FileUploadHelper fileUploadHelper, MatrixLoaderHelper matrixLoaderHelper, PathProvider pathProvider, ComputeService computeService, ThreadedComputeController threadedComputeController, GrpcServerScalingController grpcServerScalingController) {
         this.fileUploadHelper = fileUploadHelper;
@@ -38,10 +34,12 @@ public class FileUploadController {
         this.computeService = computeService;
         this.threadedComputeController = threadedComputeController;
         this.grpcServerScalingController = grpcServerScalingController;
+        this.logger = new LoggerProvider(FileUploadController.class).provideLoggerInstance();
     }
 
     @PostMapping("/upload")
     public ResponseEntity<?> uploadFile(@RequestParam("file1") MultipartFile file1, @RequestParam("file2") MultipartFile file2) {
+
         try {
             if (file1.isEmpty() || file2.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Files are empty");
