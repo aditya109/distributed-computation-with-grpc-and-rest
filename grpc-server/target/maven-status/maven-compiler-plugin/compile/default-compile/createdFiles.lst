@@ -7,11 +7,11 @@ io\github\stubs\matrix\computeGrpc$computeFutureStub.class
 io\github\stubs\matrix\computeGrpc$computeMethodDescriptorSupplier.class
 io\github\engine\AddBlock.class
 io\github\engine\MultiplyBlock.class
+io\github\middleware\LoggerProvider.class
 io\github\stubs\matrix\Matrix$multiplyBlockResponse$1.class
 io\github\stubs\matrix\Matrix$multiplyBlockRequest.class
 io\github\stubs\matrix\computeGrpc$1.class
 io\github\stubs\matrix\computeGrpc.class
-io\github\helper\MatrixLoader.class
 io\github\stubs\matrix\Matrix$multiplyBlockResponseOrBuilder.class
 io\github\stubs\matrix\Matrix$multiplyBlockResponse$Builder.class
 io\github\stubs\matrix\Matrix.class
