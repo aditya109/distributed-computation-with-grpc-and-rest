@@ -6,4 +6,4 @@ WORKDIR /app
 COPY . .
 EXPOSE 8097
 RUN mvn clean generate-sources compile install
-CMD ["mvn exec:java -Dexec.args=\"PORT:8097;\""]
+CMD ["mvn", "exec:java", "-Dexec.args=\"PORT:8097;\""]

@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+    grcp_worker:
+        ports:
+            - "8097:8097"
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: "daitya96/dc-grest-grpc-server:0.0.1"
